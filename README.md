@@ -1,6 +1,6 @@
 # Blurry-Slurry
 
-An ai tool that detects faces in videos, tracks them between frames, and applies a configurable blur before exporting the processed output.
+This is the CLI-only base version of the face blur project. It detects faces in a video, tracks them between detection passes, applies a mosaic-style blur, and writes a new output video. Optional preview and audio preservation are supported.
 
 ## What it does
 
