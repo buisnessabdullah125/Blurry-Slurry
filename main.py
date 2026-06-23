@@ -114,6 +114,7 @@ def process_video_file(
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
+    # Temporary file holds the processed video stream before optional audio mux.
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_file:
         temp_video_path = Path(tmp_file.name)
 

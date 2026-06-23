@@ -50,6 +50,7 @@ class FaceDetector:
         if path.exists():
             return path
 
+        # Download the default model into a local cache directory for reuse.
         if path.name == "yolov8n-face.pt":
             cache_dir = Path.home() / ".face_blur_models"
             cache_dir.mkdir(parents=True, exist_ok=True)

@@ -19,6 +19,7 @@ def normalize_blur_strength(value: int) -> int:
 
 def blur_faces(frame, bboxes: List[BBox], blur_strength: int, padding_ratio: float = 0.15):
     """Apply oval mosaic masks to each face bounding box on a frame."""
+    # Use a smaller block size than the raw strength so the mosaic stays detailed.
     block_size = max(4, normalize_blur_strength(blur_strength) // 6)
     h, w = frame.shape[:2]
 
@@ -35,6 +36,7 @@ def blur_faces(frame, bboxes: List[BBox], blur_strength: int, padding_ratio: flo
 
         roi = frame[y1:y2, x1:x2]
 
+        # Create a pixelated mosaic version of the ROI by downsampling and upsampling.
         small_w = max(1, (x2 - x1) // block_size)
         small_h = max(1, (y2 - y1) // block_size)
         small = cv2.resize(roi, (small_w, small_h), interpolation=cv2.INTER_LINEAR)
