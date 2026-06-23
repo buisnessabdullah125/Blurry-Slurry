@@ -2,3 +2,4 @@ ultralytics
 opencv-python
 tqdm
 streamlit
+pyinstaller

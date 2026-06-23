@@ -1,8 +1,8 @@
-# Face Blur (YOLOv8 + OpenCV)
+# Blurry Slurry for Windows
 
-A production-ready Python CLI that detects and blurs faces in a video using YOLOv8 face detection and OpenCV tracking.
+Blurry Slurry is a Windows app that detects faces in videos and images, tracks them across frames in videos, and applies a configurable blur before exporting the finished file.
 
-This project also includes a Streamlit front end for drag-and-drop uploads and interactive controls.
+It ships as a downloadable `.exe` for Windows and includes an easy drag-and-drop interface for selecting a file, adjusting blur settings, and processing the media.
 
 ## Features
 
@@ -11,22 +11,51 @@ This project also includes a Streamlit front end for drag-and-drop uploads and i
 - Re-detection every configurable N frames to reduce tracker drift
 - Gaussian blur applied per tracked face ROI
 - Optional real-time preview (`Q` to cancel)
-- Streamlit web UI for drag-and-drop video uploads
+- Windows desktop app experience with a bundled `.exe`
+- Drag-and-drop image and video upload interface
 - Progress bar per frame using `tqdm`
 - Audio preservation by muxing original audio with `ffmpeg`
 - Graceful fallback when `ffmpeg` is missing (video still saved)
 
 ## Project Structure
 
-- `main.py`: CLI entry point and pipeline orchestration
-- `app.py`: Streamlit front end for interactive video processing
+- `main.py`: core processing pipeline and CLI entry point
+- `app.py`: Streamlit front end for interactive image and video processing
+- `run_app.py`: bundled Streamlit launcher used by the executable
+- `build_exe.spec`: PyInstaller build definition
+- `build_exe.bat`: Windows build script
 - `detector.py`: YOLOv8 face detector wrapper
 - `tracker.py`: CSRT tracker management
 - `blurrer.py`: Face blur logic
 - `preview.py`: OpenCV preview window helpers
 - `utils.py`: Validation, progress, and audio mux helpers
 
-## Installation
+## Download
+
+Download the latest release for Windows and run `BlurrySlurry.exe`.
+
+Install `ffmpeg` if you want the app to preserve the original audio track in exported videos.
+
+## How To Use
+
+1. Open `BlurrySlurry.exe`.
+2. Drag and drop an image or video, or choose a file.
+3. Adjust blur strength, radius, and detection interval.
+4. Start processing and download the finished file.
+
+## Windows App
+
+Open `BlurrySlurry.exe` on Windows, then drag and drop an image or video or use the file picker, choose your blur strength, radius, and detection interval, and process the media.
+
+If you prefer to run it from source while developing, use:
+
+```bash
+python run_app.py
+```
+
+## Build From Source
+
+Use this section only if you want to develop or package the app yourself.
 
 ```bash
 python -m venv .venv
@@ -38,32 +67,29 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Install `ffmpeg` and ensure it is available in your `PATH` if you want to preserve original audio.
-
-## Usage
+Then run the app locally with:
 
 ```bash
-python main.py --input <path> --output <path> [--blur-strength <int>] [--preview] [--detection-interval <int>]
+python run_app.py
 ```
 
-## Web UI
+## Build the Windows App
+
+To package the app into a Windows executable, install the requirements and run:
 
 ```bash
-streamlit run app.py
+build_exe.bat
 ```
 
-The UI lets you drag and drop a video, adjust blur strength, adjust the face padding radius, and change the detection interval before exporting the result.
+The packaged file will be created in the `dist` folder as `BlurrySlurry.exe`.
 
-If you run `python app.py` directly, it will now hand off to Streamlit automatically.
+The first build includes the full Python runtime and project dependencies, so the executable can be copied to another Windows system and run without installing Python separately. It still needs access to the bundled model file and, for audio preservation, `ffmpeg` on the target machine.
 
-### Arguments
+### App Controls
 
-- `--input`: required path to input video
-- `--output`: output path (default: `<input>_blurred.mp4`)
-- `--blur-strength`: Gaussian kernel size, odd integer (default: `51`)
-- `--preview`: show live preview window; press `Q` to cancel processing
-- `--detection-interval`: frames between YOLO re-detection (default: `15`)
-- `--padding-ratio`: extra padding around detected faces before blur is applied (default: `0.15`)
+- Blur strength: controls how aggressive the face blur looks
+- Radius: adds extra padding around each face before blur is applied
+- Detection interval: how often the app re-runs face detection
 
 ## Example
 
@@ -75,3 +101,4 @@ python main.py --input input.mp4 --output output.mp4 --blur-strength 61 --previe
 
 - The YOLO weights are loaded from `yolov8n-face.pt`; the model will download automatically on first run when needed.
 - If no faces are detected in a frame, processing continues and that frame is written unchanged.
+

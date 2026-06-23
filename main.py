@@ -16,8 +16,11 @@ from tracker import FaceTrackerManager
 from utils import (
     create_progress_bar,
     default_output_path,
+    default_image_output_path,
+    SUPPORTED_IMAGE_EXTENSIONS,
     mux_audio_with_ffmpeg,
     print_config_summary,
+    validate_input_image,
     validate_input_video,
 )
 
@@ -30,6 +33,19 @@ class VideoProcessResult:
     cancelled: bool
     audio_muxed: bool
     elapsed_seconds: float
+
+
+@dataclass
+class ImageProcessResult:
+    output_path: Path
+    face_count: int
+    elapsed_seconds: float
+
+
+def _blur_frame(frame, detector: FaceDetector, blur_strength: int, padding_ratio: float):
+    detections = detector.detect(frame)
+    processed = blur_faces(frame, detections, blur_strength, padding_ratio=padding_ratio)
+    return processed, detections
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -138,9 +154,8 @@ def process_video_file(
         if not ret:
             raise RuntimeError("Could not read first frame from video.")
 
-        detections = detector.detect(frame)
+        processed, detections = _blur_frame(frame, detector, blur_strength, padding_ratio)
         tracker.initialize(frame, detections)
-        processed = blur_faces(frame, detections, blur_strength, padding_ratio=padding_ratio)
         writer.write(processed)
         progress.update(1)
         frame_index += 1
@@ -156,12 +171,11 @@ def process_video_file(
                 break
 
             if frame_index % detection_interval == 0:
-                boxes = detector.detect(frame)
+                processed, boxes = _blur_frame(frame, detector, blur_strength, padding_ratio)
                 tracker.initialize(frame, boxes)
             else:
                 boxes = tracker.update(frame)
-
-            processed = blur_faces(frame, boxes, blur_strength, padding_ratio=padding_ratio)
+                processed = blur_faces(frame, boxes, blur_strength, padding_ratio=padding_ratio)
             writer.write(processed)
 
             if preview and not show_preview(processed):
@@ -198,6 +212,49 @@ def process_video_file(
         output_path=output_path,
         cancelled=cancelled,
         audio_muxed=audio_muxed,
+        elapsed_seconds=elapsed,
+    )
+
+
+def process_image_file(
+    input_file: str | Path,
+    output_file: str | Path | None = None,
+    *,
+    blur_strength: int = 51,
+    padding_ratio: float = 0.15,
+) -> ImageProcessResult:
+    input_path = validate_input_image(str(input_file))
+    output_path = Path(output_file) if output_file else default_image_output_path(input_path)
+    if output_path.suffix.lower() not in SUPPORTED_IMAGE_EXTENSIONS:
+        output_path = output_path.with_suffix(input_path.suffix)
+    blur_strength = normalize_blur_strength(blur_strength)
+
+    print_config_summary(
+        input_path=input_path,
+        output_path=output_path,
+        blur_strength=blur_strength,
+        detection_interval=1,
+        preview_enabled=False,
+    )
+
+    start_time = time.time()
+    detector = FaceDetector()
+    frame = cv2.imread(str(input_path))
+    if frame is None:
+        raise RuntimeError(f"Could not read image file: {input_path}")
+
+    processed, detections = _blur_frame(frame, detector, blur_strength, padding_ratio)
+    if not cv2.imwrite(str(output_path), processed):
+        raise RuntimeError(f"Failed to write output image: {output_path}")
+
+    elapsed = time.time() - start_time
+    print(f"\nProcessing completed.")
+    print(f"Output saved to: {output_path}")
+    print(f"Total processing time: {elapsed:.2f}s")
+
+    return ImageProcessResult(
+        output_path=output_path,
+        face_count=len(detections),
         elapsed_seconds=elapsed,
     )
 

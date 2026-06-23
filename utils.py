@@ -7,6 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 SUPPORTED_VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"}
+SUPPORTED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
 def validate_input_video(path: str) -> Path:
@@ -23,8 +24,26 @@ def validate_input_video(path: str) -> Path:
     return input_path
 
 
+def validate_input_image(path: str) -> Path:
+    input_path = Path(path)
+    if not input_path.exists() or not input_path.is_file():
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+
+    if input_path.suffix.lower() not in SUPPORTED_IMAGE_EXTENSIONS:
+        allowed = ", ".join(sorted(SUPPORTED_IMAGE_EXTENSIONS))
+        raise ValueError(
+            f"Unsupported input format '{input_path.suffix}'. Supported formats: {allowed}"
+        )
+
+    return input_path
+
+
 def default_output_path(input_path: Path) -> Path:
     return input_path.with_name(f"{input_path.stem}_blurred.mp4")
+
+
+def default_image_output_path(input_path: Path) -> Path:
+    return input_path.with_name(f"{input_path.stem}_blurred{input_path.suffix}")
 
 
 def create_progress_bar(total_frames: int):
