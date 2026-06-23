@@ -1,6 +1,6 @@
-# Blurry Slurry for Windows
+# Blurry Slurry
 
-Blurry Slurry is a Windows app that detects faces in videos and images, tracks them across frames in videos, and applies a configurable blur before exporting the finished file.
+Blurry Slurry is an app that detects faces in videos and images, tracks them across frames in videos, and applies a configurable blur before exporting the finished file.
 
 It ships as a downloadable `.exe` for Windows and includes an easy drag-and-drop interface for selecting a file, adjusting blur settings, and processing the media.
 
