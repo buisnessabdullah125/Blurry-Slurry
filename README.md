@@ -1,4 +1,4 @@
-# Face Blur CLI (YOLOv8 + OpenCV)
+# Face Blur (YOLOv8 + OpenCV)
 
 A production-ready Python CLI that detects and blurs faces in a video using YOLOv8 face detection and OpenCV tracking.
 
